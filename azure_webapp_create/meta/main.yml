@@ -1,0 +1,11 @@
+galaxy_info:
+  author: DXO
+  description: Role for provisioning Azure Web App
+  company: DXO
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Azure
+      versions:
+        - '*'
+  galaxy_tags: []

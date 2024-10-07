@@ -1,0 +1,5 @@
+webapp_name: default-webapp
+plan_name: default-service-plan
+location: eastus
+rg: ansible_rg
+repo: myapp

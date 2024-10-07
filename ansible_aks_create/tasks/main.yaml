@@ -1,0 +1,63 @@
+- name: Create a namespace
+  kubernetes.core.k8s:
+    state: absent
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: dotnet-namespace   # Specify the name of the Namespace here
+
+- name: Create a Deployment object 
+  kubernetes.core.k8s:
+    state: absent
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: dotnet-deployment
+        namespace: dotnet-namespace 
+      spec:
+        replicas: "{{ replicas }}"
+        selector:
+          matchLabels:
+            app: "{{ app_name }}"
+        template:
+          metadata:
+            labels:
+              app: "{{ app_name }}"
+          spec:
+            containers:
+            - name: "{{ container_name }}"
+              image: "{{ image }}"
+              ports:
+              - containerPort: "{{ container_port }}" 
+              resources:
+              limits:
+                  cpu: "1"
+                  memory: "512Mi"
+              requests:
+                  cpu: "0.5"
+                  memory: "256Mi"                
+              env :
+              - name: ENV 
+                value: "PROD"
+            imagePullSecrets:
+            - name: acr-secret 
+
+- name: Create a Service object 
+  kubernetes.core.k8s:
+    state: absent
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: dotnet-service
+        namespace: dotnet-namespace 
+      spec:
+        type: "{{ service_type }}"
+        selector:
+        app: "{{ app_name }}"
+        ports:
+        - protocol: TCP
+          port: "{{ service_port }}"
+          targetPort: 8080

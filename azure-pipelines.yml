@@ -1,0 +1,42 @@
+trigger: none
+pr: none  # Disable PR triggers, can be adjusted as needed
+
+pool:
+  name: 'New SonarQube Integration Agent Pool'
+
+variables:
+  - template: variables.yml
+
+steps:
+- script: |
+    source /path/to/venv/bin/activate
+  displayName: 'Activate Python VEnv'
+
+- task: AzureKeyVault@2
+  inputs:
+    azureSubscription: '' # Service connection for the Azure subscription containing the Azure Key Vault instance
+    KeyVaultName: '' # Name of the Azure Key Vault instance
+    SecretsFilter: * # The secrets that need to be downloaded. '*' indicates all secrets
+    RunAsPreJob: false # Runs the task before the job execution begins. Exposes secrets to all tasks in the job, not just tasks that follow this one.
+
+  
+- script: |
+    #!/bin/bash
+    sudo az login --service-principal -u $(AZCLIUNAME) -p $(AZCLIPWD) --tenant $(TENANTID)
+    sudo az account set --subscription $(SUBSCRIPTION)
+    sudo az acr login --name $(ACRNAME) --resource-group $(ACRRG)
+    sudo az aks get-credentials --resource-group $(AKS_RG) --name $(K8S_CLUSTER)
+    sudo kubectl config get-contexts
+  displayName: 'Azure Login'
+
+- script: |
+    # Run Ansible playbook to create Azure App Service
+    source /path/to/venv/bin/activate
+    echo "ACR username: $(AZCLIUNAME)"
+    echo "ACR password: $(AZCLIPWD)"
+    cd $(Build.SourcesDirectory)
+    ansible-playbook ansible_aks_role.yml -vvv --extra-vars "acr_username=$(AZCLIUNAME) acr_password=$(AZCLIPWD)"
+    #ansible-playbook ansible_webapp_role.yml -vvv --extra-vars "acr_username=$(AZCLIUNAME) acr_password=$(AZCLIPWD)"
+
+    #ansible-playbook linux_appservice_ansible_delete.yml -vvv --extra-vars "rg=$(RG)"
+  displayName: 'Run Ansible Playbook'

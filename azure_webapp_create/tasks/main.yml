@@ -1,0 +1,28 @@
+- name: Ensure resource group exists
+  azure_rm_resourcegroup:
+    name: "{{ rg }}"
+    location: East US
+  register: rg_result
+
+- debug:
+    var: rg_result
+
+- name: Create a docker web app with private ACR registry
+  azure_rm_webapp:
+    resource_group: "{{ rg }}"
+    name: "{{ webapp_name }}"
+    plan:
+      name: "{{ plan_name }}"
+      is_linux: true
+      sku: F1
+    app_settings:
+      testkey: testvalue
+    container_settings:
+      name: "{{ repo }}:latest"
+      registry_server_url: ***.azurecr.io
+      registry_server_user: "{{ acr_username }}"
+      registry_server_password: "{{ acr_password }}"
+
+- name: Debug Python Interpreter
+  debug:
+    msg: "Python Interpreter: {{ ansible_python_interpreter }}"

@@ -1,0 +1,7 @@
+replicas: 3
+app_name: dotnet
+container_name: dotnet-container
+image: dsocontainerregistry.azurecr.io/dotnet:latest
+container_port: 8080
+service_type: LoadBalancer
+service_port: 80
